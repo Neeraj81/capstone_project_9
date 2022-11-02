@@ -26,7 +26,7 @@ predict_threshold = float(predict_threshold)
 # Get responce from tensorflow model server
 '''
 
-new_model = tf.keras.models.load_model('/my_model')
+new_model = tf.keras.models.load_model('/my_model.h5')
 
 
 
