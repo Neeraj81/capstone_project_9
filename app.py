@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request
 from flask_ngrok import run_with_ngrok
+import tensorflow as tf
 import random
 import json
 import numpy as np
@@ -8,7 +9,10 @@ import requests
 import json
 import os
 import re
+import random
 import time
+from keras.models import load_model
+
 
 '''
 # get value from enviroment variable
