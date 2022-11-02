@@ -10,7 +10,7 @@ import os
 import re
 import time
 
-
+'''
 # get value from enviroment variable
 tenorflow_url = os.environ.get(
     'TENSORFLOW_URL', 'http://localhost:1000/v1/models/predictive_text:predict')
@@ -20,8 +20,9 @@ predict_threshold = os.environ.get(
 
 predict_threshold = float(predict_threshold)
 # Get responce from tensorflow model server
+'''
 
-new_model = tf.keras.models.load_model('/content/my_model')
+new_model = tf.keras.models.load_model('/my_model')
 
 
 
@@ -67,7 +68,7 @@ def generate_text(model, start_string, num_generate, temperature):
 
 def chatbot_response(msg):
     pred = generate_text(
-                    lstm_model, 
+                    new_model, 
                     num_generate = 1000, 
                     temperature = 0.5, 
                     start_string = msg
