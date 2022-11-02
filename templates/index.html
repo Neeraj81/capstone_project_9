@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Movie Genre Predictor </title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles/style.css') }}"
+    />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  </head>
+
+  <body>
+    <div id="container">
+      <main>
+        <header>
+          <img
+            src="https://img.icons8.com/plasticine/100/000000/bot.png"
+            alt=""
+            width="70"
+          />
+          <div>
+            <h2>Movie Summary Bot</h2>
+          </div>
+          <img
+            src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/1940306/ico_star.png"
+            alt=""
+          />
+        </header>
+        <ul id="chat" class="chat">
+          <li class="you">
+            <div class="entete">
+              <span class="status green"></span>
+              <h2>Movie Summary Bot</h2>
+              <h3></h3>
+            </div>
+            <div class="triangle"></div>
+            <div class="message">
+              Hi, welcome to Summary Bot! Go ahead and send me a Summary.
+            </div>
+          </li>
+        </ul>
+        <footer>
+          <form class="msger-inputarea" id="msger-inputarea">
+            <textarea
+              class="msger-input"
+              placeholder="Type your summary"
+            ></textarea>
+            <button type="submit" class="msger-send-btn">Send</button>
+            <!-- <a
+              href="#"
+              onclick="document.getElementById('msger-inputarea').submit()"
+              >Send</a
+            > -->
+          </form>
+        </footer>
+      </main>
+    </div>
+
+    <script>
+      const msgerForm = get(".msger-inputarea");
+      const msgerInput = get(".msger-input");
+      const msgerChat = get(".chat");
+
+      // Icons made by Freepik from www.flaticon.com
+      const BOT_IMG = "https://img.icons8.com/dusk/64/000000/bot--v1.png";
+      const PERSON_IMG = "https://image.flaticon.com/icons/svg/145/145867.svg";
+      const BOT_NAME = "   Summary Bot";
+      const PERSON_NAME = "me";
+
+      msgerForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const msgText = msgerInput.value;
+        if (!msgText) return;
+
+        appendMessage(PERSON_NAME, PERSON_IMG, "me", msgText);
+        msgerInput.value = "";
+        botResponse(msgText);
+      });
+
+      function appendMessage(name, img, side, text) {
+        //   Simple solution for small apps
+
+        var li = document.createElement("li");
+        li.className = `${side}`;
+
+        var div1 = document.createElement("div");
+        div1.className = "entete";
+
+        var h3 = document.createElement("h3");
+        h3.innerHTML = `     ${formatDate(new Date())}       `;
+
+        var h2 = document.createElement("h2");
+        h2.innerHTML = name;
+
+        var span = document.createElement("span");
+        span.className = "status blue";
+
+        var div2 = document.createElement("div");
+        div2.className = "triangle";
+
+        var div3 = document.createElement("div");
+        div3.className = "message";
+        div3.innerHTML = text;
+
+        li.appendChild(div1);
+        div1.appendChild(h3);
+        div1.appendChild(h2);
+        div1.appendChild(span);
+        li.appendChild(div2);
+        li.appendChild(div3);
+
+        document.querySelector("ul").appendChild(li);
+        // msgerChat.insertAdjacentHTML("beforeend", msgHTML);
+        msgerChat.scrollTop += 500;
+      }
+
+      function botResponse(rawText) {
+        // Bot Response
+        $.get("/get", { msg: rawText }).done(function (data) {
+          console.log(rawText);
+          console.log(data);
+          const msgText = data;
+          appendMessage(BOT_NAME, BOT_IMG, "you", msgText);
+        });
+      }
+
+      // Utils
+      function get(selector, root = document) {
+        return root.querySelector(selector);
+      }
+
+      function formatDate(date) {
+        const h = "0" + date.getHours();
+        const m = "0" + date.getMinutes();
+
+        return `${h.slice(-2)}:${m.slice(-2)}`;
+      }
+    </script>
+  </body>
+</html>
