@@ -8,6 +8,7 @@ import requests
 import json
 import os
 import re
+import time
 
 
 # get value from enviroment variable
@@ -20,36 +21,43 @@ predict_threshold = os.environ.get(
 predict_threshold = float(predict_threshold)
 # Get responce from tensorflow model server
 
+new_model = tf.keras.models.load_model('/content/my_model')
 
 
 
-
-def get_responce_from_model_server(msg):
-    input_ids = tokenizer.encode(msg, return_tensors='tf')
-    data = json.dumps(
-        {"signature_name": "serving_default", "instances": input_ids.numpy().tolist()})
-    headers = {"content-type": "application/json"}
-    json_response = requests.post(
-        tenorflow_url, data=data, headers=headers)
-    predictions = json.loads(json_response.text)
-    return predictions
+vocab_2_index= {'\n': 0, '\r': 1, ' ': 2, '!': 3, '&': 4, '(': 5, ')': 6, ',': 7, '-': 8, '.': 9, '0': 10, '1': 11, '2': 12, '3': 13, '4': 14, '5': 15, '6': 16, '7': 17, '8': 18, '9': 19, ':': 20, ';': 21, '?': 22, 'A': 23, 'B': 24, 'C': 25, 'D': 26, 'E': 27, 'F': 28, 'G': 29, 'H': 30, 'I': 31, 'J': 32, 'K': 33, 'L': 34, 'M': 35, 'N': 36, 'O': 37, 'P': 38, 'Q': 39, 'R': 40, 'S': 41, 'T': 42, 'U': 43, 'V': 44, 'W': 45, 'X': 46, 'Y': 47, 'Z': 48, 'a': 49, 'b': 50, 'c': 51, 'd': 52, 'e': 53, 'f': 54, 'g': 55, 'h': 56, 'i': 57, 'j': 58, 'k': 59, 'l': 60, 'm': 61, 'n': 62, 'o': 63, 'p': 64, 'q': 65, 'r': 66, 's': 67, 't': 68, 'u': 69, 'v': 70, 'w': 71, 'x': 72, 'y': 73, 'z': 74, '£': 75, '½': 76, '‘': 77, '’': 78, '“': 79, '”': 80}
 
 
 
-def genre_predictor(input_ids):
-  gpt_generate = gpt_2_p_model.generate(
-                                input_ids,
-                                do_sample = True, 
-                                max_length = 2*MAX_LEN,#to test how long we can generate and it be coherent
-                                top_k = 50, 
-                                top_p = 0.85, 
-                                num_return_sequences = 1
-  )
+def generate_text(model, start_string, num_generate, temperature):
+  start = time.time()
+  #Converting the input string to vector
+  input_eval = [vocab_2_index[s] for s in start_string]
+  #Converting into required tensor dimension
+  input_eval = tf.expand_dims(input_eval, 0) 
+  #Empty string to store the predictions
+  text_generated = [] 
+  # Clears the hidden states in the RNN
+  model.reset_states() 
 
+  for i in range(num_generate): 
+    # prediction for single character
+    predictions = model(input_eval) 
+    predictions = tf.squeeze(predictions, 0) 
+    predictions = predictions / temperature
+    predicted_id = tf.random.categorical(predictions, num_samples=1)[-1,0].numpy()
 
-  for i, sample_output in enumerate(gpt_generate):
-      print(tokenizer.decode(sample_output, skip_special_tokens = True))
-      print('')
+    #Here we are taking the predicted char as the next input to the model
+    input_eval = tf.expand_dims([predicted_id], 0) 
+    # Also devectorize the number and add to the generated text
+    text_generated.append(index_2_vocab_arr[predicted_id]) 
+  end = time.time()
+
+  global time_taken
+  time_taken = end-start
+
+  print(start_string + ''.join(text_generated))
+  print('\n\nRun time took by this model:', time_taken)
 
 # function to clean the word of any punctuation or special characters and lowwer it
 
@@ -58,8 +66,12 @@ def genre_predictor(input_ids):
 
 
 def chatbot_response(msg):
-    pred = get_responce_from_model_server(msg)
-    pred = genre_predictor(pred)
+    pred = generate_text(
+                    lstm_model, 
+                    num_generate = 1000, 
+                    temperature = 0.5, 
+                    start_string = msg
+                    )
     return pred
 
 
